@@ -1,0 +1,45 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:   # Manual trigger button လည်း ပါသည်
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+
+    steps:
+      # ① Code ဆွဲပါ
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # ② Java ထည့်ပါ (Android build အတွက်)
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      # ③ Flutter ထည့်ပါ
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+
+      # ④ Dependencies install
+      - name: Install dependencies
+        run: flutter pub get
+
+      # ⑤ APK Build
+      - name: Build Release APK
+        run: flutter build apk --release --no-tree-shake-icons
+
+      # ⑥ APK ကို Download ရနိုင်အောင် upload
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: recap-maker-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 30   # 30 ရက် download ရနိုင်မည်
